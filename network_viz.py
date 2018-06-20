@@ -7,8 +7,7 @@ from keras.layers import Activation, Dense, Input, initializers
 from keras.models import model_from_json,  load_model, Sequential
 from keras import optimizers
 
-def createGraph (model):
-
+def createGraph(model):
 
     """createGraph:
     
@@ -33,12 +32,10 @@ def createGraph (model):
     
     graph = nx.Graph()
 
-    
     #PARAMETRES - NOMBRE DE COUCHES
 
     graph.graph['nbCouches'] = int(len(weights) / 2 + 1)#nombre de couches (entrées et sorties comprises)
-    
-    
+
     #FONCTIONS D'ACTIVATIONS
     
     graph.graph['fonctions'] = []
@@ -46,12 +43,10 @@ def createGraph (model):
     for i in range(graph.graph['nbCouches'] - 1):
         graph.graph['fonctions'].append(arch['config'][i]['config']['activation'])
     
-    
     #PARAMETRES - NOMBRE DE NEURONES PAR COUCHES
 
     graph.graph['nbNodes'] = [] #liste du nombre de neurone par couche
     graph.graph['maxNeuronnesCouche'] = 0 #nombre de neurones dans la plus grosse couche
-
 
     for i in range(graph.graph['nbCouches']):
         if i > 0:
@@ -69,7 +64,6 @@ def createGraph (model):
         for j in i:
             if abs(j) > graph.graph['bestBiais']:
                 graph.graph['bestBiais'] = abs(j)
-                
 
     #AJOUT DE NODES
     for i in range(graph.graph['nbCouches']):
@@ -94,7 +88,6 @@ def createGraph (model):
     else:
         graph.graph['bestPoids'] = abs(graph.graph['lowerPoids'])#Poids avec l'absolu le plus élevé
 
-        
     #DETERMINATION DE L'IMPORTANCE DE CHAQUE NODE
 
     for i in range(graph.graph['nbCouches']):
@@ -104,14 +97,12 @@ def createGraph (model):
                 for k in range(graph.graph['nbNodes'][i+1]):
                     graph.nodes[i * graph.graph['maxNeuronnesCouche'] + j]['importance'] += abs(graph[i * graph.graph['maxNeuronnesCouche'] + j][(i+1) * graph.graph['maxNeuronnesCouche'] + k]['poids']) / graph.graph['nbNodes'][i+1]
 
-                    
     #CREATION D'UN DICTIONNAIRE POUR LES POSITIONS DES NODES
 
     graph.graph['posNodes'] = dict()
     for i in range(graph.graph['nbCouches']):
         for j in range(graph.graph['nbNodes'][i]):
             graph.graph['posNodes'][i * graph.graph['maxNeuronnesCouche'] + j] = (i, j + (graph.graph['maxNeuronnesCouche'] - graph.graph['nbNodes'][i]) / 2)
-
 
     #DETERMINATION DES ATTRIBUTS VISUELS DES EDGES
 
@@ -123,7 +114,6 @@ def createGraph (model):
                     poids = graph[i * graph.graph['maxNeuronnesCouche'] + j][(i+1) * graph.graph['maxNeuronnesCouche'] + k]['poids']
                     graph[i * graph.graph['maxNeuronnesCouche'] + j][(i+1) * graph.graph['maxNeuronnesCouche'] + k]['epaisseur'] = abs(poids) / graph.graph['bestPoids'] * 30
             
-    
     #Dictionnaire pour les couleurs
     
     graph.graph['couleurs'] = {}#Contient les couleurs de chaque fonction d'activation, en RGB
@@ -141,7 +131,6 @@ def createGraph (model):
     graph.graph['couleurs']["softsign"]  = (0, 0.6, 0)
 
     return graph
-
 
 def show(graph, saveFile = "", dpi = 200, start = 0, legender = True, fullLegende = False, titre = ""):
     
@@ -163,7 +152,6 @@ def show(graph, saveFile = "", dpi = 200, start = 0, legender = True, fullLegend
         
     """
     
-    
     #DESSIN DES NODES
     
     plt.clf()
@@ -173,13 +161,11 @@ def show(graph, saveFile = "", dpi = 200, start = 0, legender = True, fullLegend
 
     tailleCentreNodes = 100 + 100 / graph.graph['maxNeuronnesCouche'] #Taille de la partie interieure des neuronnes
     
-    
     for node in graph.nodes():
         i = int (node / graph.graph['maxNeuronnesCouche'])#Numéro de la couche déterminée par le numéro général du neuronne
         j = node % graph.graph['maxNeuronnesCouche']#Numéro du neuronne dans la couche  déterminée par le numéro général du neuronne
 
         #Dessin de l'importance
-        
         
         if i > 0:
             color = graph.graph['couleurs'][graph.graph['fonctions'][i-1]]
@@ -196,8 +182,6 @@ def show(graph, saveFile = "", dpi = 200, start = 0, legender = True, fullLegend
 
     nx.draw_networkx_nodes(graph, graph.graph['posNodes'], node_size = tailleCentreNodes, node_color = 'k')
     
-    
-    
     #DESSIN DES EDGES
 
     for i in range(start, 101):
@@ -210,9 +194,7 @@ def show(graph, saveFile = "", dpi = 200, start = 0, legender = True, fullLegend
                     nx.draw_networkx_edges(graph, graph.graph['posNodes'], edgelist = [edge], edge_cmap = plt.cm.Greens, edge_vmin = 0, edge_vmax = graph.graph['bestPoids'], edge_color = [abs(poids)], width = epaisseur)
                 else:
                     nx.draw_networkx_edges(graph, graph.graph['posNodes'], edgelist = [edge], edge_cmap = plt.cm.Blues, edge_vmin = 0, edge_vmax = graph.graph['bestPoids'], edge_color = [abs(poids)], width = epaisseur)
-    
-    
-    
+     
     #TITRE
     if titre != "":
         titre = titre.split('|')
@@ -222,8 +204,6 @@ def show(graph, saveFile = "", dpi = 200, start = 0, legender = True, fullLegend
             plt.text(graph.graph['nbCouches'] / 2, graph.graph['maxNeuronnesCouche'] + 1, titre[0], size = 64, ha = 'center', va = 'top')
             plt.text(graph.graph['nbCouches'] / 2, graph.graph['maxNeuronnesCouche'] + 0.25, titre[1], size = 48, ha = 'center', va = 'top')
 
-    
-    
     #LEGENDE
     
     if legender:
@@ -234,7 +214,6 @@ def show(graph, saveFile = "", dpi = 200, start = 0, legender = True, fullLegend
         
         i = 1
 
-        
         legende.add_node('input')
         posLegendeNodes['input'] = (graph.graph['nbCouches'], graph.graph['maxNeuronnesCouche'])
         plt.text(graph.graph['nbCouches'] - 0.1, graph.graph['maxNeuronnesCouche'], "input:", size = 32, ha = 'right', va = 'center')
@@ -246,7 +225,6 @@ def show(graph, saveFile = "", dpi = 200, start = 0, legender = True, fullLegend
                 posLegendeNodes[key] = (graph.graph['nbCouches'], graph.graph['maxNeuronnesCouche'] - i)
                 plt.text(graph.graph['nbCouches'] - 0.1, graph.graph['maxNeuronnesCouche'] - i, key + ":", size = 32, ha = 'right', va = 'center')
                 i += 1
-
 
         for node in legende.nodes():
             color = graph.graph['couleurs'][node]
